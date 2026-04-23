@@ -47,15 +47,17 @@ criterion = nn.CrossEntropyLoss()
 # 訓練函式
 def train(epoch):
     model.train()
-    for batch_idx, (data, target) in enumerate(train_loader):
+    pbar = tqdm(enumerate(train_loader), total=len(train_loader), desc=f"Epoch {epoch}")
+    for batch_idx, (data, target) in pbar:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
-        if batch_idx % 100 == 0:
-            print(f'Train Epoch: {epoch} [{batch_idx * len(data)}/{len(train_loader.dataset)}] Loss: {loss.item():.6f}')
+        
+        if batch_idx % 10 == 0:
+            pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
 
 # 測試函式
 def test():
@@ -63,7 +65,7 @@ def test():
     test_loss = 0
     correct = 0
     with torch.no_grad():
-        for data, target in test_loader:
+        for data, target in tqdm(test_loader, desc="Testing"):
             data, target = data.to(device), target.to(device)
             output = model(data)
             test_loss += criterion(output, target).item()
